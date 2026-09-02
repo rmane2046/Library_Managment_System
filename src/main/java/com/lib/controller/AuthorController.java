@@ -32,13 +32,7 @@ public class AuthorController
 	public ResponseEntity<String> addAuthor(@RequestBody AuthorVo vo)
 	{
 		String result = authorService.addAuthorOnly(vo);
-		if(result.startsWith("Author is Saved Successfully"))
-		{
-			return new ResponseEntity<String>(result, HttpStatus.CREATED);
-			
-		}
-		else
-			return new ResponseEntity<String>(result, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<String>(result, HttpStatus.CREATED);
 	}
 	
 	@PostMapping("/add-author-with-book")
@@ -51,51 +45,28 @@ public class AuthorController
 	@GetMapping("/getbyid/{id}")
 	public ResponseEntity<?> getAuthorById(@PathVariable Integer id)
 	{
-		AuthorVo vo = authorService.getAuthorById(id);
-		if(vo != null)
-		{
-			return new ResponseEntity<AuthorVo>(vo,HttpStatus.OK);
-		}
-		else
-		{
-			return new ResponseEntity<String>("Author Not Found With Id : "+id,HttpStatus.NOT_FOUND);
-		}
-	
+		AuthorVo vo = authorService.getAuthorById(id);		
+		return new ResponseEntity<AuthorVo>(vo,HttpStatus.OK);	
 	}
 	
 	@GetMapping("/get-all-author")
 	public ResponseEntity<?> getAllAuthors()
 	{
-		List<AuthorVo> author = authorService.getAllAuthor();
-		if(author.isEmpty())
-		{
-			return new ResponseEntity<String>("No Author Found",HttpStatus.NOT_FOUND);
-		}
-		else 
-			return new ResponseEntity<List<AuthorVo>>(author,HttpStatus.OK);
+		List<AuthorVo> author = authorService.getAllAuthor(); 
+		return new ResponseEntity<List<AuthorVo>>(author,HttpStatus.OK);
 	}
 	
 	@PutMapping("/update-author")
 	public ResponseEntity<String> updateAuthor(@RequestBody AuthorVo vo)
 	{
 		String result = authorService.updateAuthor(vo);
-		if(result != null)
-		{
-			return new ResponseEntity<String>(result, HttpStatus.OK);
-		}
-		else
-			return new ResponseEntity<String>("Author Not Found With Id : "+vo.getAuthorId(), HttpStatus.NOT_FOUND);
+		return new ResponseEntity<String>(result, HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/delete-author/{id}")
 	public ResponseEntity<String> deleteAuthor(@PathVariable Integer id)
 	{
 		String result = authorService.deleteAuthor(id);
-		if(result != null)
-		{
-			return new ResponseEntity<String>(result,HttpStatus.OK);
-		}
-		else
-			return new ResponseEntity<String>("Author Not Found With ID : "+id,HttpStatus.NOT_FOUND);
+		return new ResponseEntity<String>(result,HttpStatus.OK);
 	}
 }

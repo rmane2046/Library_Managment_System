@@ -7,6 +7,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import com.lib.entity.AuthorEntity;
 import com.lib.entity.BookEntity;
+import com.lib.exceptions.AuthorNotFoundException;
+import com.lib.exceptions.BookAlreadyPresentException;
+import com.lib.exceptions.BookNotFoundException;
 import com.lib.repository.AuthorEntityRepository;
 import com.lib.repository.BookEntityRepository;
 import com.lib.vo.BookVo;
@@ -28,8 +31,14 @@ public class BookService implements BooksService
 	{
 		Optional<AuthorEntity> authorEntity = authorRepo.findById(vo.getAuthorId());
 		Optional<BookEntity> book = bookRepo.findByBookTitle(vo.getBookTitle());
-		if(authorEntity.isPresent() && book.isEmpty())
-		{		
+		if(authorEntity.isEmpty())
+		{
+			throw new AuthorNotFoundException("Author ID : "+vo.getAuthorId()+" Not Found.");
+		}
+		if(book.isPresent())
+		{
+			throw new BookAlreadyPresentException("Book ID : "+vo.getBookTitle()+"Already Present.");
+		}		
 			BookEntity bookEntity = new BookEntity();
 			bookEntity.setBookTitle(vo.getBookTitle());
 			bookEntity.setGenre(vo.getGenre());
@@ -38,17 +47,16 @@ public class BookService implements BooksService
 			bookEntity.setAuthor(authorEntity.get());
 			bookRepo.save(bookEntity);
 			return "Book Add Successfully with ID :"+bookEntity.getBookId();
-		}
-		else
-			return "Author Not Found or Book Already Exists";
 	}
 
 	@Override
 	public BookVo getBookById(Integer id)
 	{
 		Optional<BookEntity> entity = bookRepo.findById(id);
-		if(entity.isPresent())
+		if(entity.isEmpty())
 		{
+			throw new BookNotFoundException("Book ID : "+id+" Not Found.");
+		}
 			BookEntity bookEntity = entity.get();
 			BookVo vo = new BookVo();
 			vo.setBookId(bookEntity.getBookId());
@@ -58,14 +66,16 @@ public class BookService implements BooksService
 			vo.setTotalCopies(bookEntity.getTotalCopies());
 			vo.setAuthorId(bookEntity.getAuthor().getAuthorId());
 			return vo;
-		}
-		return null;
 	}
 
 	@Override
 	public List<BookVo> getAllBooks()
 	{
 		List<BookEntity> entity = bookRepo.findAll();
+		if(entity.isEmpty())
+		{
+			throw new BookNotFoundException("Books Are Not Found.");
+		}
 		List<BookVo> vo = new ArrayList<BookVo>();
 		for(BookEntity enti : entity)
 		{
@@ -84,8 +94,10 @@ public class BookService implements BooksService
 	@Override
 	public String updateBook(BookVo vo) {
 		Optional<BookEntity> book = bookRepo.findById(vo.getBookId());
-		if(book.isPresent())
+		if(book.isEmpty())
 		{
+			throw new BookNotFoundException("Books ID : "+vo.getBookId()+" Not Found.");
+		}
 			BookEntity entity = book.get();
 			entity.setBookTitle(vo.getBookTitle());
 			entity.setGenre(vo.getGenre());
@@ -93,27 +105,29 @@ public class BookService implements BooksService
 			entity.setTotalCopies(vo.getTotalCopies());
 			bookRepo.save(entity);
 			return "Book ID : "+vo.getBookId()+" Updated Successfully.";
-		}
-		return "Book Not Found with ID : "+vo.getBookId();
 	}
 
 	@Override
 	public String deleteBook(Integer id) 
 	{
-		Optional<BookEntity> book = bookRepo.findById(id);	
-		if(book.isPresent())
+		Optional<BookEntity> book = bookRepo.findById(id);
+		if(book.isEmpty())
 		{
+			throw new BookNotFoundException("Books ID : "+id+" Not Found For Deletion.");
+		}
 			bookRepo.deleteById(id);
 			return "Book Delete With ID : "+id;
-		}
-		else 
-			return "Book Not Found With ID :"+id;
 					
 	}
 
 	@Override
-	public List<BookVo> getAvailableBook() {
+	public List<BookVo> getAvailableBook() 
+	{
 		List<BookEntity> entity = bookRepo.findAvailable();
+		if(entity.isEmpty())
+		{
+			throw new BookNotFoundException("Books Not Found.");
+		}
 		List<BookVo> vo = new ArrayList<BookVo>();
 		for(BookEntity book : entity)
 		{

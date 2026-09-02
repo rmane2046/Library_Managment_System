@@ -1,7 +1,10 @@
 package com.lib.vo;
 
 import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +19,5 @@ public class MemberRecordVo
 	private long memberPhone;
 	private String memberAddress;
 	private LocalDate membershipDate;
-
-	private Integer issueRecordId;
+	private List<IssueRecordVo> record;
 }

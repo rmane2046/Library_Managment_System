@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.lib.entity.AuthorEntity;
 import com.lib.entity.BookEntity;
+import com.lib.exceptions.AuthorAlreadyPresentException;
+import com.lib.exceptions.AuthorNotFoundException;
 import com.lib.repository.AuthorEntityRepository;
 import com.lib.repository.BookEntityRepository;
 import com.lib.vo.AuthorBookVo;
@@ -30,21 +32,26 @@ public class AuthorServices implements AuthorsService
 	public String addAuthorOnly(AuthorVo vo) 
 	{
 			Optional<AuthorEntity> authorOpt = authorRepo.findByAuthorPhone(vo.getAuthorPhone());
-			if(authorOpt.isEmpty()) {
+			if(authorOpt.isPresent())
+			{
+				throw new AuthorAlreadyPresentException("Author is Already Present with Number : "+vo.getAuthorPhone());
+			}
 				AuthorEntity author = new AuthorEntity();
 				author.setAuthorName(vo.getAuthorName());
 				author.setAuthorPhone(vo.getAuthorPhone());
 				authorRepo.save(author);
-				return "Author is Saved Successfully with ID:"+author.getAuthorId();
-			}
-			else
-				return "Author is Already Present with Number : "+vo.getAuthorPhone();
+				return "Author is Saved Successfully with ID:"+author.getAuthorId();			
 			
 	}
 
 	@Override
 	public String addAuthorwithBook(AuthorBookVo vo) 
 	{
+		Optional<AuthorEntity> authorOpt = authorRepo.findByAuthorPhone(vo.getAuthorvo().getAuthorPhone());
+		if(authorOpt.isPresent())
+		{
+			throw new AuthorAlreadyPresentException("Author is Already Present with Number : "+vo.getAuthorvo().getAuthorPhone());
+		}
 		AuthorEntity author = new AuthorEntity();
 		author.setAuthorName(vo.getAuthorvo().getAuthorName());
 		author.setAuthorPhone(vo.getAuthorvo().getAuthorPhone());
@@ -64,31 +71,35 @@ public class AuthorServices implements AuthorsService
 	public AuthorVo getAuthorById(Integer id) 
 	{		
 		Optional<AuthorEntity> author = authorRepo.findById(id);
-		if(author.isPresent())
+		if(author.isEmpty())
 		{
+			throw new AuthorNotFoundException("Author Not Found With ID : "+id);
+		}
 			AuthorVo vo = new AuthorVo();
 			AuthorEntity entity = author.get();
 			vo.setAuthorId(entity.getAuthorId());
 			vo.setAuthorName(entity.getAuthorName());
 			vo.setAuthorPhone(entity.getAuthorPhone());
 			List<BookVo> bookVos = new ArrayList<>();
-	        for (BookEntity book : entity.getBook()) {
+	        for (BookEntity book : entity.getBook())
+	        {
 	            BookVo bookVo = new BookVo();
 	            bookVo.setBookId(book.getBookId());
 	            bookVo.setBookTitle(book.getBookTitle());
 	            bookVos.add(bookVo);
 	        }
-
+	        
 	        vo.setBook(bookVos);
-	        return vo;
-		}
-		
-		return null;
+	        return vo;		
 	}
 
 	@Override
 	public List<AuthorVo> getAllAuthor() {
 		List<AuthorEntity> authorEntity = authorRepo.findAll();
+		if(authorEntity.isEmpty())
+		{
+			throw new AuthorNotFoundException("No Author Found");
+		}
 		List<AuthorVo> authorVo = new ArrayList<AuthorVo>();
 		for (AuthorEntity entity : authorEntity) {
 
@@ -119,26 +130,29 @@ public class AuthorServices implements AuthorsService
 	}
 
 	@Override
-	public String updateAuthor(AuthorVo vo) {
+	public String updateAuthor(AuthorVo vo) 
+	{
 		Optional<AuthorEntity> entity = authorRepo.findById(vo.getAuthorId());
-		if(entity.isPresent())
+		
+		if(entity.isEmpty())
 		{
+			throw new AuthorNotFoundException("Author ID : "+vo.getAuthorId()+" Not Found For Updation.");
+		}		
 			AuthorEntity author = entity.get();
 			author.setAuthorName(vo.getAuthorName());
 			author.setAuthorPhone(vo.getAuthorPhone());
 			authorRepo.save(author);
 			return "Author : "+vo.getAuthorId()+" Update Successfully";
-		}
-		else
-			return null;
 	}
 
 	@Override
 	public String deleteAuthor(Integer id) 
 	{
 			Optional<AuthorEntity> author = authorRepo.findById(id);
-			if(author.isPresent())
+			if(author.isEmpty())
 			{
+				throw new AuthorNotFoundException("Author ID : "+id+" Not Found For Deletion.");
+			}
 				List<BookEntity> books = bookRepo.findByAuthorAuthorId(id);
 
 				for (BookEntity book : books) {
@@ -148,8 +162,7 @@ public class AuthorServices implements AuthorsService
 				bookRepo.saveAll(books);
 				authorRepo.deleteById(id);
 				return "Author "+id+" Deleted Successfully.";
-			}
-		return null;
+
 	}
 
 }
