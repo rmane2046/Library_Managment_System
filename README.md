@@ -560,7 +560,7 @@ Frontend, authentication, role-based authorization, automated testing, and addit
 
 # 👨‍💻 Author
 
-**Your Name**
+**Rohan Mane**
 
 Computer Engineering Student
 Java | Spring Boot | REST API | Oracle | SQL
